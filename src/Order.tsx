@@ -125,7 +125,7 @@ export default function Order({
               tdProps={{ className: 'border border-black px-2 py-1' }}
             />
             <EditableTd
-              value={price === 0 ? '' : String(price)}
+              value={price === 0 ? '' : String(`¥${price}`)}
               onChange={(v) => setPrice(Number(v) || 0)}
               inputType="number"
               tdProps={{ className: 'border border-black px-2 py-1' }}
