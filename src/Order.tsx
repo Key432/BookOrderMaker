@@ -18,8 +18,6 @@ function EditableTd({
 
   useEffect(() => setDraft(value), [value]);
 
-  //TODO: 
-
   return (
     <td
       {...tdProps}
@@ -31,7 +29,7 @@ function EditableTd({
       {editing ? (
         <input
           autoFocus
-          className="w-full h-full border-0 bg-transparent outline-none"
+          className="w-full h-full border-0 bg-transparent outline-none bg-gray-200"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={() => {
@@ -85,10 +83,13 @@ export default function Order({
       .then((data) => {
         if (data && data[0]) {
           const bookData = data[0];
+          console.log(bookData);
+          console.log(bookData?.onix?.ProductSupply?.SupplyDetail?.Price?.[0]?.PriceAmount)
           if (bookData.summary) {
             setPublisher(bookData.summary.publisher || '');
             setAuthor(bookData.summary.author || '');
             setTitle(bookData.summary.title || '');
+            setPrice(bookData?.onix?.ProductSupply?.SupplyDetail?.Price?.[0]?.PriceAmount || 0);
           } else {
             alert('該当する書籍情報が見つかりませんでした。');
           }
