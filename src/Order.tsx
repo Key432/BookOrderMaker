@@ -83,8 +83,6 @@ export default function Order({
       .then((data) => {
         if (data && data[0]) {
           const bookData = data[0];
-          console.log(bookData);
-          console.log(bookData?.onix?.ProductSupply?.SupplyDetail?.Price?.[0]?.PriceAmount)
           if (bookData.summary) {
             setPublisher(bookData.summary.publisher || '');
             setAuthor(bookData.summary.author || '');
@@ -93,7 +91,12 @@ export default function Order({
           } else {
             alert('該当する書籍情報が見つかりませんでした。');
           }
+        } else {
+          alert('該当する書籍情報を取得できませんでした。');
         }
+      }).catch((error) => {
+        console.error(error);
+        alert('書籍情報の取得中にエラーが発生しました。コンソールを確認してください。');
       });
   }
 
