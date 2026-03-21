@@ -1,36 +1,62 @@
 import Order from './Order';
-import { useState, useRef } from 'react';
 
-type OrderItem = { id: number };
+export type BookOrder = {
+  id: number;
+  publisher: string;
+  author: string;
+  title: string;
+  price: number;
+  isbn: string;
+};
 
-export default function Orders({ className }: { className?: string }) {
-  const nextId = useRef(1);
-  const [orders, setOrders] = useState<OrderItem[]>([{ id: nextId.current++ }]);
-
+export default function Orders({
+  className,
+  orders,
+  onChange,
+  nextOrderId,
+}: {
+  className?: string;
+  orders: BookOrder[];
+  onChange: (orders: BookOrder[]) => void;
+  nextOrderId: number;
+}) {
   function handleAddOrder() {
-    setOrders((prev) => [...prev, { id: nextId.current++ }]);
+    onChange([
+      ...orders,
+      { id: nextOrderId, publisher: '', author: '', title: '', price: 0, isbn: '' },
+    ]);
   }
 
-  // 削除ボタンで押された id の要素のみを削除する
   function handleRemoveOrder(id: number) {
-    setOrders((prev) => (prev.length <= 1 ? prev : prev.filter((o) => o.id !== id)));
+    onChange(orders.length <= 1 ? orders : orders.filter((order) => order.id !== id));
+  }
+
+  function handleUpdateOrder(id: number, nextOrder: BookOrder) {
+    onChange(orders.map((order) => (order.id === id ? nextOrder : order)));
   }
 
   return (
     <div className={className}>
       {orders.map((order, index) => (
         <div key={order.id}>
-          <Order className="mt-2" index={index} />
+          <Order
+            className="mt-2"
+            index={index}
+            order={order}
+            onChange={(nextOrder) => handleUpdateOrder(order.id, nextOrder)}
+          />
           <div className="mt-1 text-right print:hidden">
             <button
               className="mr-2 rounded-md border-2 bg-gray-100 pl-4 pr-4"
               onClick={handleAddOrder}
+              type="button"
             >
               +
             </button>
             <button
               className="rounded-md border-2 bg-gray-100 pl-4 pr-4"
               onClick={() => handleRemoveOrder(order.id)}
+              type="button"
             >
               -
             </button>
@@ -40,4 +66,3 @@ export default function Orders({ className }: { className?: string }) {
     </div>
   );
 }
-

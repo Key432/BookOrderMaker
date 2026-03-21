@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { type BookOrder } from './Orders';
 
 type TdProps = React.TdHTMLAttributes<HTMLTableCellElement>;
 
@@ -9,7 +10,7 @@ function EditableTd({
   tdProps,
 }: {
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   inputType?: 'text' | 'number';
   tdProps?: TdProps;
 }) {
@@ -22,14 +23,14 @@ function EditableTd({
     <td
       {...tdProps}
       onDoubleClick={(e) => {
-        tdProps?.onDoubleClick?.(e as any);
+        tdProps?.onDoubleClick?.(e);
         setEditing(true);
       }}
     >
       {editing ? (
         <input
           autoFocus
-          className="w-full h-full border-0 bg-transparent outline-none bg-gray-200"
+          className="h-full w-full border-0 bg-gray-200 bg-transparent outline-none"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={() => {
@@ -48,12 +49,10 @@ function EditableTd({
           }}
           type={inputType}
         />
+      ) : value !== '' ? (
+        value
       ) : (
-        (value && value !== '') || value === '0' ? (
-          value
-        ) : (
-          <span className="text-gray-400">編集</span>
-        )
+        <span className="text-gray-400">編集</span>
       )}
     </td>
   );
@@ -62,18 +61,20 @@ function EditableTd({
 export default function Order({
   className,
   index,
+  order,
+  onChange,
 }: {
   className?: string;
   index: number;
+  order: BookOrder;
+  onChange: (order: BookOrder) => void;
 }) {
-  const [publisher, setPublisher] = useState('');
-  const [author, setAuthor] = useState('');
-  const [title, setTitle] = useState('');
-  const [price, setPrice] = useState(0);
-  const [isbn, setIsbn] = useState('');
+  function updateField<K extends keyof BookOrder>(key: K, value: BookOrder[K]) {
+    onChange({ ...order, [key]: value });
+  }
 
   function handleFetchInfo() {
-    const cleanIsbn = isbn.replace(/[-\s]/g, '');
+    const cleanIsbn = order.isbn.replace(/[-\s]/g, '');
     if (!/^\d{10}(\d{3})?$/.test(cleanIsbn)) {
       alert('ISBN は 10 桁または 13 桁の数字で入力してください。');
       return;
@@ -84,17 +85,22 @@ export default function Order({
         if (data && data[0]) {
           const bookData = data[0];
           if (bookData.summary) {
-            setPublisher(bookData.summary.publisher || '');
-            setAuthor(bookData.summary.author || '');
-            setTitle(bookData.summary.title || '');
-            setPrice(bookData?.onix?.ProductSupply?.SupplyDetail?.Price?.[0]?.PriceAmount || 0);
+            onChange({
+              ...order,
+              publisher: bookData.summary.publisher || '',
+              author: bookData.summary.author || '',
+              title: bookData.summary.title || '',
+              price: bookData?.onix?.ProductSupply?.SupplyDetail?.Price?.[0]?.PriceAmount || 0,
+              isbn: order.isbn,
+            });
           } else {
             alert('該当する書籍情報が見つかりませんでした。');
           }
         } else {
           alert('該当する書籍情報を取得できませんでした。');
         }
-      }).catch((error) => {
+      })
+      .catch((error) => {
         console.error(error);
         alert('書籍情報の取得中にエラーが発生しました。コンソールを確認してください。');
       });
@@ -111,25 +117,22 @@ export default function Order({
             <th className="w-[20%] border border-black px-2 py-1">価格</th>
           </tr>
           <tr>
-            <td
-              rowSpan={3}
-              className="border border-black px-2 py-1 text-center align-middle"
-            >
+            <td rowSpan={3} className="border border-black px-2 py-1 text-center align-middle">
               {index + 1}
             </td>
             <EditableTd
-              value={publisher}
-              onChange={(v) => setPublisher(v)}
+              value={order.publisher}
+              onChange={(value) => updateField('publisher', value)}
               tdProps={{ className: 'border border-black px-2 py-1' }}
             />
             <EditableTd
-              value={author}
-              onChange={(v) => setAuthor(v)}
+              value={order.author}
+              onChange={(value) => updateField('author', value)}
               tdProps={{ className: 'border border-black px-2 py-1' }}
             />
             <EditableTd
-              value={price === 0 ? '' : String(`¥${price}`)}
-              onChange={(v) => setPrice(Number(v) || 0)}
+              value={order.price === 0 ? '' : String(order.price)}
+              onChange={(value) => updateField('price', Number(value) || 0)}
               inputType="number"
               tdProps={{ className: 'border border-black px-2 py-1' }}
             />
@@ -138,19 +141,28 @@ export default function Order({
             <th colSpan={2} className="border border-black px-2 py-1 text-left">
               書名
             </th>
-            <th className="border border-black px-2 py-1 text-left flex justify-between">ISBN
-              <button className='bg-gray-50 text-black pl-1 pr-1 rounded-md ml-2 text-sm print:hidden' onClick={handleFetchInfo}>取得</button>
+            <th className="border border-black px-2 py-1 text-left">
+              <div className="flex items-center justify-between gap-2">
+                <span>ISBN</span>
+                <button
+                  className="ml-2 rounded-md bg-gray-50 px-1 py-0.5 text-sm text-black print:hidden"
+                  onClick={handleFetchInfo}
+                  type="button"
+                >
+                  取得
+                </button>
+              </div>
             </th>
           </tr>
           <tr>
             <EditableTd
-              value={title}
-              onChange={(v) => setTitle(v)}
+              value={order.title}
+              onChange={(value) => updateField('title', value)}
               tdProps={{ colSpan: 2, className: 'border border-black px-2 py-1' }}
             />
             <EditableTd
-              value={isbn}
-              onChange={(v) => setIsbn(v)}
+              value={order.isbn}
+              onChange={(value) => updateField('isbn', value)}
               tdProps={{ className: 'border border-black px-2 py-1' }}
             />
           </tr>
