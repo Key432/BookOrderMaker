@@ -35,6 +35,8 @@ export default function Orders({
     onChange(orders.map((order) => (order.id === id ? nextOrder : order)));
   }
 
+  const totalPrice = orders.reduce((total, order) => total + (Number(order.price) || 0), 0);
+
   return (
     <div className={className}>
       {orders.map((order, index) => (
@@ -63,6 +65,9 @@ export default function Orders({
           </div>
         </div>
       ))}
+      <div className="mt-6 border-t border-black pt-3 text-right text-lg font-bold">
+        総計：{totalPrice.toLocaleString('ja-JP')} 円
+      </div>
     </div>
   );
 }
