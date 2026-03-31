@@ -35,7 +35,7 @@ export default function Orders({
     onChange(orders.map((order) => (order.id === id ? nextOrder : order)));
   }
 
-  const totalPrice = orders.reduce((total, order) => total + order.price, 0);
+  const totalPrice = orders.reduce((total, order) => total + (Number(order.price) || 0), 0);
 
   return (
     <div className={className}>
